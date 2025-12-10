@@ -1,19 +1,12 @@
-
-import L from 'leaflet';
+//import PouchDB from 'pouchdb';
 import PouchDB from 'pouchdb-browser';
-import './canvas.to-blob.js';
-import { tileBounds } from './bounds';
-import { lv95 } from './crs';
-import * as epsg from './epsg';
-import flag from './flag';
 
-const urlsByCrs = {
-  [epsg.lv03]: 'https://wmts{s}.geo.admin.ch/1.0.0/{layer}/default/{timestamp}/21781/{z}/{y}/{x}.{format}',
-  [epsg.lv95]: 'https://wmts{s}.geo.admin.ch/1.0.0/{layer}/default/{timestamp}/2056/{z}/{x}/{y}.{format}',
-};
-
-const pluginAttributionSuffix = ` <a href="https://leaflet-tilelayer-swiss.karavia.ch/" title="Plugin for displaying national maps of Switzerland">${flag}</a>`;
-
+// Why is this needed?
+/*L.TileLayer.PouchDBCached = L.TileLayer.extend({
+    initialize: function (url, options) {
+        L.TileLayer.prototype.initialize.call(this, url, options);
+    }
+});*/
 
 L.TileLayer.addInitHook(function() {
     if (!this.options.useCache) {
@@ -23,7 +16,6 @@ L.TileLayer.addInitHook(function() {
 
     this._db = new PouchDB("offline-tiles");
 });
-
 
 // 🍂namespace TileLayer
 // 🍂section PouchDB tile caching options
@@ -47,32 +39,7 @@ L.TileLayer.prototype.options.cacheFormat = "image/png";
 // Maximum age of the cache, in milliseconds
 L.TileLayer.prototype.options.cacheMaxAge = 24 * 3600 * 1000;
 
-
-const Layer = L.TileLayer.extend({
-  options: {
-    attribution: '© <a href="https://www.swisstopo.ch/">Swisstopo</a>',
-    bounds: tileBounds,
-    crs: lv95,
-    format: 'jpeg',
-    layer: 'ch.swisstopo.pixelkarte-farbe',
-    minZoom: 14,
-    maxNativeZoom: 27,
-    maxZoom: 28,
-    pluginAttribution: true,
-    subdomains: '0123456789',
-    timestamp: 'current',
-  },
-  initialize(options) {
-    L.Util.setOptions(this, options);
-    const url = this.options.url || urlsByCrs[this.options.crs.code];
-    if (this.options.attribution && this.options.pluginAttribution) {
-      this.options.attribution += pluginAttributionSuffix;
-    }
-    L.TileLayer.prototype.initialize.call(this, url, this.options);
-  },
-});
-
-Layer.include({
+L.TileLayer.PouchDBCached.include({
     // Overwrites L.TileLayer.prototype.createTile
     createTile: function(coords, done) {
         var tile = document.createElement("img");
@@ -382,4 +349,18 @@ Layer.include({
     },
 });
 
-export default Layer;
+// Nonsense
+/*
+L.tileLayer.pouchDBCached = function (url, options) {
+    return new L.TileLayer.PouchDBCached(url, options);
+};
+
+if (typeof window !== 'undefined' && window.L && typeof window.L.tileLayer?.pouchDBCached !== 'function') {
+  window.L.TileLayer.PouchDBCached = L.TileLayer.PouchDBCached;
+  window.L.tileLayer.pouchDBCached = function (...args) {
+    return new L.TileLayer.PouchDBCached(...args);
+  };
+}
+*/
+
+export default L.TileLayer.PouchDBCached;
