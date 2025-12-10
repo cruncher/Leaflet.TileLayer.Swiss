@@ -1,4 +1,6 @@
 import L from 'leaflet';
+import PouchDB from 'pouchdb-browser';
+import './canvas.to-blob.js';
 import { switzerlandBounds, tileBounds } from './bounds';
 import { lv03, lv95 } from './crs';
 import SwissLayer from './layer';
@@ -10,6 +12,15 @@ L.TileLayer.Swiss = SwissLayer;
 if (L.tileLayer) {
   L.tileLayer.swiss = (options) => new SwissLayer(options);
 }
+
+L.TileLayer.addInitHook(function() {
+    if (!this.options.useCache) {
+        this._db = null;
+        return;
+    }
+
+    this._db = new PouchDB("offline-tiles");
+});
 
 L.Map.addInitHook(function setMaxBounds() {
   if (!this.options.maxBounds) {

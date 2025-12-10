@@ -1,7 +1,5 @@
 
 import L from 'leaflet';
-import PouchDB from 'pouchdb-browser';
-import './canvas.to-blob.js';
 import { tileBounds } from './bounds';
 import { lv95 } from './crs';
 import * as epsg from './epsg';
@@ -13,16 +11,6 @@ const urlsByCrs = {
 };
 
 const pluginAttributionSuffix = ` <a href="https://leaflet-tilelayer-swiss.karavia.ch/" title="Plugin for displaying national maps of Switzerland">${flag}</a>`;
-
-
-L.TileLayer.addInitHook(function() {
-    if (!this.options.useCache) {
-        this._db = null;
-        return;
-    }
-
-    this._db = new PouchDB("offline-tiles");
-});
 
 
 // 🍂namespace TileLayer
